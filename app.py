@@ -40,8 +40,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-client = Client()
-gemini = GeminiClient()
+client = Client(APIFY_KEY)
+gemini = GeminiClient(GEMINI_KEY)
 sessions = SessionStore()
 
 

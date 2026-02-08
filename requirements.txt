@@ -1,0 +1,6 @@
+fastapi
+uvicorn[standard]
+requests
+pydantic
+google-genai
+apify_client

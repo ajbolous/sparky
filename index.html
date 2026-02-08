@@ -155,7 +155,7 @@
         const loadingId = addLoadingIndicator();
 
         try {
-          const response = await fetch("http://0.0.0.0:8000/get_jobs", {
+          const response = await fetch("/get_jobs", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({

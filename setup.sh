@@ -17,4 +17,4 @@ rootdir=$(pwd)
 echo "Root directory: $rootdir"
 export PYTHONPATH="$PYTHONPATH:$rootdir"
 
-uvicorn app:app --host=0.0.0.0 --port=8000 --reload --workers 8
+uvicorn app:app --host=0.0.0.0 --port=8000 --reload

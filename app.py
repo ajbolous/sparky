@@ -5,7 +5,6 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
-import json
 from google.genai import types
 
 from apify import Client
@@ -13,6 +12,7 @@ from gemini import GeminiChatSessions
 
 GEMINI_KEY = os.environ.get("GEMINI_KEY", None)
 APIFY_KEY = os.environ.get("APIFY_KEY", None)
+
 
 class UserRequest(BaseModel):
     session_id: str
@@ -46,9 +46,11 @@ Act as a job search assistant called Sparky. Your task is to extract relevant in
 
 Tools available:
 1) job_search: Retrieves a list of relevant jobs for the given query context and user preferences. The input to this tool should be the following fields(args):
-- job_title: a string representing the job title the user is interested in
+- job_title: a string representing the job title the user is interested in, junior and senior alone is not a job title, stick to specific titles such as "software engineer" or "Data scientist"
 - location: a string can be a city, area or a state/country representing the location of the job, try to convert it to something specific according to the context.
 - company_names: a list of strings representing the company names the user is interested in, e
+- experience_level: a string representing the experience level for the job, string form 1-6, e.g. 1=entry-level, 2=mid-level, 3=senior-level, ...
+- job_entries: a number (int) representing the number of job entries to retrieve, e.g. 10, default 10 if not specified
 
 * If "company_names" is startups or tech or something vague expand it to actual company names in that location and definition.
 * Do not include a missing fields that cannot be extracted in the JSON.
@@ -83,6 +85,14 @@ tools_declarations = [
                     "items": {"type": "string"},
                     "description": "User query text",
                 },
+                "experience_level": {
+                    "type": "string",
+                    "description": "The experience level for the job, string form 1-6, e.g. 1=entry-level, 2=mid-level, 3=senior-level, ...",
+                },
+                "job_entries": {
+                    "type": "integer",
+                    "description": "The number of job entries to retrieve, e.g. 10, default 10 if not specified",
+                },
             },
             "required": ["job_title", "location"],
         },
@@ -109,8 +119,12 @@ async def _handle_function_calls(
                 "job_title": args.get("job_title"),
                 "location": args.get("location"),
                 "company_names": args.get("company_names", []),
-                "job_entries": "10",
+                "job_entries": args.get("job_entries", 10),
             }
+            
+            if "experience_level" in args:
+                data["experience_level"] = args["experience_level"]
+
             print("Calling apify with data:", data)
             res = [obj async for obj in client.call(data)]
             return res, "SEARCH"
@@ -150,4 +164,3 @@ async def index():
 @app.get("/health")
 def health_check():
     return {"status": "healthy"}
-
